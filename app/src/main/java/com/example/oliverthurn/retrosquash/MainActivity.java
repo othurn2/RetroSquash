@@ -63,19 +63,9 @@ public class MainActivity extends AppCompatActivity {
     protected boolean ballisMovingUp;
     protected boolean ballIsMovingDown;
 
-    // Knowing where the ball is inside of the game screen ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    protected boolean ballInYOne;
-    protected boolean ballInYTwo;
-    protected boolean ballInYThree;
-    protected boolean ballInYFour;
-
     // Racket movement ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     protected boolean racketIsMovingLeft;
     protected boolean racketIsMovingRight;
-
-    // Enemy racket movement ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    protected boolean enemyRacketIsMovingRight;
-    protected boolean enemyRacketIsMovingLeft;
 
     // Stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     protected long lastFrameTime;
@@ -153,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
     public class SquashCourtView extends SurfaceView implements Runnable {
 
         // Creating the thread, canvas holder, paint object and the boolean whether to play the game in the run method.
-        Thread runThread = null;
+        protected Thread runThread = null;
         volatile boolean gameOn;
         SurfaceHolder holder;
         Paint canvasPaint;
@@ -164,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
             holder = getHolder();
             canvasPaint = new Paint();
             ballIsMovingDown = true;
-            Log.i("MyInfo", "ballIsMovingDown"+ ballIsMovingDown);
 
 
             // Send the ball in random direction
@@ -278,7 +267,8 @@ public class MainActivity extends AppCompatActivity {
                 // Setting a direction for when the ball comes back onto the screen
                 Random randomNumber = new Random();
                 int startX = randomNumber.nextInt(screenWidth - ballWidth) + 1;
-                ballPosition.x = startX + ballWidth;
+                ballPosition.x = startX + ballWidth - racketWidth;
+
 
                 // Repeating the switch for what direction to go depending on the random number generated.
                 int ballDirection = randomNumber.nextInt(3);
@@ -301,13 +291,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-                // Detect if the ball has reached the top of the screen ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//                if (ballPosition.y <= 0){
-//                    ballIsMovingDown = true;
-//                    ballisMovingUp = false;
-//                    ballPosition.y = 1;
-//                    // soundPool.play(sampleTwo, 1, 1, 0, 0, 1);
-//                }
             if (ballPosition.y < 0) {
                 if (ballPosition.y < 0 && ballisMovingUp) {
                     lives = lives + 1;
@@ -315,8 +298,6 @@ public class MainActivity extends AppCompatActivity {
                 } else if(ballPosition.y > 0 && ballPosition.y < enemyRacketPosition.y + racketHeight){
                     enemyScore += 0;
                 }
-
-
 
                 ballPosition.y = 1 + ballWidth;
 
@@ -327,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
                 while(startX + ballWidth <= enemyRacketPosition.x + racketWidth && startX + ballWidth >= enemyRacketPosition.x){
                     Random randomNumberTwo = new Random();
                     startX = randomNumberTwo.nextInt(screenWidth - ballWidth) + 1;
-                    ballPosition.x = startX + ballWidth;
+                    ballPosition.x = startX + ballWidth - racketWidth;
 
                 }
 
@@ -385,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
                         ballisMovingUp = true;
                         ballIsMovingDown = false;
 
-                        //soundPool.play(sampleThree, 1, 1, 0, 0, 1);
+                        soundPool.play(sampleThree, 1, 1, 0, 0, 1);
 
                             if (ballPosition.x > racketPosition.x){
                                 ballIsMovingRight = true;
@@ -558,7 +539,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (ballIsMovingDown && ballIsMovingLeft){
-                if (enemyRacketPosition.x + racketWidth <= 0 ){
+                if (enemyRacketPosition.x <= 0 ){
                     enemyRacketPosition.x +=0;
                 } else {
                     int hyp = (int) Math.sqrt((double) (((ballPosition.x - 12) * (ballPosition.x - 12)) + ((ballPosition.y + 6) * (ballPosition.y + 6))));
@@ -607,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
                     ballisMovingUp = false;
                     ballIsMovingDown = true;
 
-                    //soundPool.play(sampleThree, 1, 1, 0, 0, 1);
+                    soundPool.play(sampleTwo, 1, 1, 0, 0, 1);
 
                     if (ballPosition.x > enemyRacketPosition.x){
                         ballIsMovingRight = true;
