@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final int RACKET_HEIGHT = 10;
     protected static final int NUMBER_OF_LIVES = 3;
     protected static final int RACKET_X_MOVE = 10;
-    protected static final int ENEMY_RACKET_COLLISION = 40;
+    protected static final int ENEMY_RACKET_COLLISION = 50;
 
     // The canvas and view objects to be used throughout the class and its inner class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     protected Canvas canvas;
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         enemyRacketPosition.y = 45 + RACKET_HEIGHT;
 
 
-        ballWidth = screenWidth / 35;
+        ballWidth = screenWidth / 50;
         ballPosition = new Point();
         ballPosition. x = screenWidth / 2;
         ballPosition.y = RACKET_HEIGHT + ballWidth;
@@ -188,9 +188,9 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
 
             while (gameOn) {
+                drawCourt();
                 updateCourt();
                 enemyRacketMovements();
-                drawCourt();
                 controlFPS();
                 //Log.i("MyInfo", "in run thread");
                 Log.i("MyInfo", "ballpos.x = " + ballPosition.x);
@@ -290,8 +290,11 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             }
-
+            // Detecting the ball going off the top of the screen
             if (ballPosition.y < 0) {
+
+                /* Could be an error here!!!!!*/
+
                 if (ballPosition.y < 0 && ballisMovingUp) {
                     lives = lives + 1;
                     enemyScore--;
@@ -305,12 +308,12 @@ public class MainActivity extends AppCompatActivity {
                 Random randomNumber = new Random();
                 int startX = randomNumber.nextInt(screenWidth - ballWidth) + 1;
                 ballPosition.x = startX + ballWidth;
-                while(startX + ballWidth <= enemyRacketPosition.x + racketWidth && startX + ballWidth >= enemyRacketPosition.x){
-                    Random randomNumberTwo = new Random();
-                    startX = randomNumberTwo.nextInt(screenWidth - ballWidth) + 1;
-                    ballPosition.x = startX + ballWidth - racketWidth;
-
-                }
+//                while(startX + ballWidth <= enemyRacketPosition.x + racketWidth && startX + ballWidth >= enemyRacketPosition.x){
+//                    Random randomNumberTwo = new Random();
+//                    startX = randomNumberTwo.nextInt(screenWidth - ballWidth) + 1;
+//                    ballPosition.x = startX + ballWidth - racketWidth;
+//
+//                }
 
                 // Repeating the switch for what direction to go depending on the random number generated.
                 int ballDirection = randomNumber.nextInt(3);
@@ -368,19 +371,60 @@ public class MainActivity extends AppCompatActivity {
 
                         soundPool.play(sampleThree, 1, 1, 0, 0, 1);
 
-                            if (ballPosition.x > racketPosition.x){
+                            if (ballPosition.x > racketPosition.x - (racketWidth / 2)){
+                                Log.i("MyInfo", "racketDetection ball.x > racket.x");
+
                                 ballIsMovingRight = true;
                                 ballIsMovingLeft = false;
 
                             }   else {
-                                    ballIsMovingRight = false;
-                                    ballIsMovingLeft = true;
+                                Log.i("MyInfo", "racketDetection else");
+                                ballIsMovingRight = false;
+                                ballIsMovingLeft = true;
 
                             }
 
                     }
 
                 }
+            // Detect if the ball has hit the racket ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            if (ballPosition.y  <= (enemyRacketPosition.y )){
+                int halfRacket = racketWidth / 2;
+                Log.i("MyInfo", "hit enemy Y ");
+
+
+                if (ballPosition.x + ballWidth > (enemyRacketPosition.x - halfRacket) &&
+                        ballPosition.x - ballWidth < (enemyRacketPosition.x + halfRacket)){
+                    Log.i("MyInfo", "hit enemy X ");
+
+                    // Update the score
+                    if (ballPosition.y < (enemyRacketPosition.y - racketHeight )){
+                        enemyScore += 0;
+                    } else {
+                        enemyScore++;
+                    }
+
+                    // Bounce the ball back Vertically
+                    ballisMovingUp = false;
+                    ballIsMovingDown = true;
+
+                    if (!ballIsMovingDown) {
+                        soundPool.play(sampleTwo, 1, 1, 0, 0, 1);
+                    }
+
+                    if (ballPosition.x > enemyRacketPosition.x + (racketHeight / 2)){
+                        ballIsMovingRight = true;
+                        ballIsMovingLeft = false;
+
+                    }   else {
+                        ballIsMovingRight = false;
+                        ballIsMovingLeft = true;
+
+                    }
+
+                }
+
+            }
 
 
             //Log.i("MyInfo", "end of update()");
@@ -408,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Paint ballWhite = new Paint();
                     ballWhite.setColor(Color.WHITE);
+                    canvas.drawCircle((float) ballPosition.x, (float) ballPosition.y, (float) ballWidth, ballWhite);
 
                     Paint enemyRacketRed = new Paint();
                     enemyRacketRed.setColor(Color.RED);
@@ -422,8 +467,10 @@ public class MainActivity extends AppCompatActivity {
                     // Draw the enemyRacket
                     canvas.drawRect(enemyRacketPosition.x - (racketWidth / 2), enemyRacketPosition.y - (RACKET_HEIGHT / 2), enemyRacketPosition.x + (racketWidth / 2), enemyRacketPosition.y, enemyRacketRed);
 
+                    Log.i("MyInfo", "enemyMovement.x = " + enemyRacketPosition.x);
+
                     // Draw the ball ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    canvas.drawRect(ballPosition.x, ballPosition.y, ballPosition.x + ballWidth, ballPosition.y + ballWidth, ballWhite);
+                    //canvas.drawRect(ballPosition.x, ballPosition.y, ballPosition.x + ballWidth, ballPosition.y + ballWidth, ballWhite);
 
                     // Setting the canvas onto the screen ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     holder.unlockCanvasAndPost(canvas);
@@ -511,7 +558,9 @@ public class MainActivity extends AppCompatActivity {
 
         public void enemyRacketMovements(){
             if (ballisMovingUp && ballIsMovingRight){
-                if (enemyRacketPosition.x >= screenWidth ){
+                Log.i("MyInfo", "Inside ball up/right");
+
+                if (enemyRacketPosition.x - (racketWidth / 2) >= screenWidth ){
                     enemyRacketPosition.x +=0;
                 } else {
                     int hyp = (int) Math.sqrt((double) (((ballPosition.x + 12) * (ballPosition.x + 12)) + ((ballPosition.y - 10) * (ballPosition.y - 10))));
@@ -521,12 +570,17 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("MyInfo", "enemyMovement right/up = " + enemyMovement);
 
                     enemyRacketPosition.x = enemyRacketPosition.x + enemyMovement;
+                    Log.i("MyInfo", "enemyMovement.x = " + enemyRacketPosition.x);
+
                 }
 
-            }
-            if (ballisMovingUp && ballIsMovingLeft){
-                if (enemyRacketPosition.x <= 0 ){
-                    enemyRacketPosition.x +=0;
+            } else if (ballisMovingUp && ballIsMovingLeft){
+                Log.i("MyInfo", "ballIsMovingLeft" + ballIsMovingLeft);
+                Log.i("MyInfo", "ballIsMovingUp" + ballisMovingUp);
+
+
+                if (enemyRacketPosition.x - (racketWidth/2) <= 0 ){
+                    enemyRacketPosition.x += 0;
                 } else {
                     int hyp = (int) Math.sqrt((double) (((ballPosition.x - 12) * (ballPosition.x - 12)) + ((ballPosition.y - 10) * (ballPosition.y - 10))));
                     Log.i("MyInfo", "hyp left/up = " + hyp);
@@ -535,11 +589,11 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("MyInfo", "enemyMovement left/up = " + enemyMovement);
 
                     enemyRacketPosition.x = enemyRacketPosition.x - enemyMovement ;
-                }
-            }
+                    Log.i("MyInfo", "enemyMovement.x = " + enemyRacketPosition.x);
 
-            if (ballIsMovingDown && ballIsMovingLeft){
-                if (enemyRacketPosition.x <= 0 ){
+                }
+            } else if (ballIsMovingDown && ballIsMovingLeft){
+                if (enemyRacketPosition.x - (racketWidth/2) <= 0 ){
                     enemyRacketPosition.x +=0;
                 } else {
                     int hyp = (int) Math.sqrt((double) (((ballPosition.x - 12) * (ballPosition.x - 12)) + ((ballPosition.y + 6) * (ballPosition.y + 6))));
@@ -549,62 +603,31 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("MyInfo", "enemyMovement left/down = " + enemyMovement);
 
                     enemyRacketPosition.x = enemyRacketPosition.x - enemyMovement;
+                    Log.i("MyInfo", "enemyMovement.x = " + enemyRacketPosition.x);
+
                 }
-            }
-            if (ballIsMovingDown && ballIsMovingRight){
-                if (enemyRacketPosition.x >= screenWidth ){
+            } else if (ballIsMovingDown && ballIsMovingRight){
+                if (enemyRacketPosition.x + racketWidth >= screenWidth ){
                     enemyRacketPosition.x +=0;
                 } else {
                     int hyp = (int) Math.sqrt((double) (((ballPosition.x + 12) * (ballPosition.x + 12)) + ((ballPosition.y + 6) * (ballPosition.y  + 6))));
                     Log.i("MyInfo", "hyp right/down = " + hyp);
 
                     int enemyMovement = (((hyp - (screenWidth / 2)) / ENEMY_RACKET_COLLISION ) );
+
                     Log.i("MyInfo", "enemyMovement right/down = " + enemyMovement);
 
                     enemyRacketPosition.x = enemyRacketPosition.x + enemyMovement;
-                }
-
-            }
-
-            // Detect if the ball has hit the racket ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if (ballPosition.y  <= (enemyRacketPosition.y + racketHeight )){
-                int halfRacket = racketWidth / 2;
-                Log.i("MyInfo", "hit enemy Y ");
-
-
-                if (ballPosition.x + ballWidth > (enemyRacketPosition.x - halfRacket - racketHeight) &&
-                        ballPosition.x - ballWidth < (enemyRacketPosition.x + halfRacket - racketHeight)){
-                    Log.i("MyInfo", "hit enemy X ");
-
-                    // Update the score
-                    if (ballPosition.y < (enemyRacketPosition.y + racketHeight )){
-                        enemyScore += 0;
-                    } else {
-                        enemyScore++;
-                    }
-                    Log.i("MyInfo", "enemyScore = " + enemyScore);
-
-                    // Bounce the ball back Vertically
-                    ballisMovingUp = false;
-                    ballIsMovingDown = true;
-
-                    soundPool.play(sampleTwo, 1, 1, 0, 0, 1);
-
-                    if (ballPosition.x > enemyRacketPosition.x){
-                        ballIsMovingRight = true;
-                        ballIsMovingLeft = false;
-
-                    }   else {
-                        ballIsMovingRight = false;
-                        ballIsMovingLeft = true;
-
-                    }
+                    Log.i("MyInfo", "enemyMovement.x = " + enemyRacketPosition.x);
 
                 }
 
             }
         }
+
+
     } // End of SquashCourtView Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
     @Override
